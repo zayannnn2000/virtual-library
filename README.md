@@ -2,6 +2,10 @@
 
 A cosy digital bookshelf and e-reader that runs in your browser, on a laptop or a phone.
 
+### 🌐 Live app: **[library.zayanblehhhh.space](https://library.zayanblehhhh.space)**
+
+Open the link on any device: no install or sign-up needed. Your books are saved in your own browser.
+
 - **A real-looking bookshelf** with spines, covers, categories and a "Continue reading" row.
 - **Reader for PDF and EPUB** with a paper page-curl when you turn pages, "Go to page" and chapter jumping,
   highlights (with an eraser), sticky notes, bookmarks and adjustable text.
