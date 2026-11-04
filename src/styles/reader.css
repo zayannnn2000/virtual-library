@@ -1,0 +1,1277 @@
+.reader {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  grid-template-columns: minmax(0, 1fr);
+  background:
+    radial-gradient(ellipse at 50% 40%, transparent 40%, rgb(90 61 120 / 0.12)),
+    #ece4ef;
+  color: var(--ink);
+  overflow: hidden;
+}
+.reader-loading {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--hand);
+  font-size: 1.5rem;
+  color: var(--lav-600);
+  background: #ece4ef;
+}
+.reader-loading.inline {
+  position: absolute;
+  background: transparent;
+  z-index: 1;
+  pointer-events: none;
+}
+.reader-missing {
+  place-items: center;
+  grid-template-rows: 1fr;
+  padding: 16px;
+}
+
+/* ---------- chrome ---------- */
+
+.reader-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: max(8px, env(safe-area-inset-top)) 12px 8px;
+  z-index: 20;
+  transition: opacity 0.35s var(--ease), transform 0.35s var(--ease);
+}
+.chrome-off .reader-bar {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+.chrome-off .reader-bar:focus-within,
+.chrome-off .reader-bar:hover {
+  opacity: 1;
+  transform: none;
+}
+/* centred on the page itself (not in the gap between the back arrow and the wider tool buttons) */
+.reader-title {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+@media (min-width: 641px) {
+  .reader-bar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, auto) minmax(0, 1fr);
+  }
+  .reader-bar > .icon-btn {
+    justify-self: start;
+  }
+  .reader-title {
+    max-width: 34vw;
+  }
+  .reader-tools {
+    justify-self: end;
+  }
+}
+.reader-title strong {
+  font-family: var(--display);
+  font-variation-settings: 'SOFT' 100;
+  font-weight: 700;
+  color: var(--lav-700);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.reader-tools {
+  display: flex;
+  gap: 4px;
+}
+/* big, labelled tools so bookmarks and notes are easy to find */
+.tool-btn {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 68px;
+  padding: 6px 8px 5px;
+  border: 0;
+  border-radius: 14px;
+  background: rgb(255 250 243 / 0.75);
+  color: var(--lav-700);
+  font-size: 0.72rem;
+  font-weight: 600;
+  box-shadow: 0 1px 0 rgb(255 255 255 / 0.6) inset, 0 3px 10px -6px rgb(90 61 120 / 0.5);
+  transition: background 0.15s, transform 0.15s;
+}
+.tool-btn:hover {
+  background: var(--cream);
+  transform: translateY(-1px);
+}
+.tool-btn.on {
+  background: var(--lav-700);
+  color: var(--cream);
+}
+@media (max-width: 640px) {
+  .tool-btn {
+    min-width: 52px;
+    padding: 5px 4px 4px;
+    font-size: 0.64rem;
+  }
+  .reader-title strong {
+    font-size: 0.9rem;
+  }
+}
+
+/* sticky notes stuck on the page */
+.sticky-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+}
+.sticky-layer.placing {
+  pointer-events: auto;
+  cursor: copy;
+  background: rgb(200 180 230 / 0.12);
+  outline: 2px dashed var(--lav-400);
+  outline-offset: -6px;
+}
+.placing-hint {
+  position: absolute;
+  left: 50%;
+  top: 14px;
+  transform: translateX(-50%);
+  margin: 0;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--plum-900);
+  color: var(--cream);
+  font-size: 0.85rem;
+  white-space: nowrap;
+  animation: rise 0.3s var(--ease) both;
+}
+.page-sticky {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  pointer-events: auto;
+  display: grid;
+  place-items: center;
+  transform: rotate(var(--tilt, -4deg));
+  box-shadow: 0 1px 1px rgb(0 0 0 / 0.08), 0 6px 12px -6px rgb(46 31 61 / 0.45);
+  cursor: grab;
+  touch-action: none;
+  animation: note-stick 0.35s var(--ease);
+}
+.page-sticky::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  width: 22px;
+  height: 10px;
+  transform: translateX(-50%) rotate(-4deg);
+  background: rgb(255 255 255 / 0.6);
+}
+.page-sticky:active {
+  cursor: grabbing;
+}
+.page-sticky-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgb(90 61 120 / 0.4);
+}
+.page-sticky-preview {
+  position: absolute;
+  left: 46px;
+  top: -4px;
+  width: 200px;
+  padding: 10px 12px;
+  font-family: var(--hand);
+  font-size: 1.1rem;
+  line-height: 1.15;
+  text-align: left;
+  color: #3d2b3a;
+  background: inherit;
+  box-shadow: 0 8px 18px -8px rgb(46 31 61 / 0.45);
+  opacity: 0;
+  transform: translateY(4px) rotate(2deg);
+  pointer-events: none;
+  transition: opacity 0.2s, transform 0.2s var(--ease);
+  white-space: pre-wrap;
+  z-index: 2;
+}
+.page-sticky:hover .page-sticky-preview,
+.page-sticky:focus-visible .page-sticky-preview {
+  opacity: 1;
+  transform: none;
+}
+@keyframes note-stick {
+  from {
+    transform: scale(1.4) rotate(12deg);
+    opacity: 0;
+  }
+}
+.pop-wrap {
+  position: relative;
+}
+.popover {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 8px);
+  z-index: 40;
+  background: var(--cream);
+  border-radius: 16px;
+  box-shadow: var(--shadow-pop);
+  padding: 12px;
+  animation: rise 0.2s var(--ease);
+}
+.flower-picker {
+  display: flex;
+  gap: 4px;
+}
+.flower-picker button {
+  border: 0;
+  background: none;
+  border-radius: 12px;
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.72rem;
+  color: var(--lav-700);
+  width: 86px;
+}
+.flower-picker button:hover,
+.flower-picker button.on {
+  background: var(--lav-100);
+}
+.type-panel {
+  width: 270px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.type-panel input[type='range'] {
+  accent-color: var(--lav-600);
+  width: 100%;
+}
+.type-panel .row {
+  justify-content: space-between;
+}
+.zoom-val {
+  font-weight: 600;
+  color: var(--lav-700);
+}
+.type-panel .fine {
+  margin: 0;
+}
+.font-serif {
+  font-family: 'Literata', serif;
+}
+.font-classic {
+  font-family: Georgia, serif;
+}
+.font-sans {
+  font-family: system-ui, sans-serif;
+}
+
+/* ---------- page area ---------- */
+
+.reader-body {
+  position: relative;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) auto 56px;
+  grid-template-areas: 'prev stage notes next';
+  align-items: stretch;
+  padding: 4px 0 10px;
+}
+.reader-stage {
+  grid-area: stage;
+  position: relative;
+  min-height: 0;
+  min-width: 0;
+}
+.turn {
+  align-self: center;
+  border: 0;
+  background: transparent;
+  color: var(--lav-600);
+  width: 46px;
+  height: 46px;
+  margin: 0 auto;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  transition: background 0.2s, opacity 0.3s;
+}
+.turn.prev {
+  grid-area: prev;
+}
+.turn.next {
+  grid-area: next;
+}
+.turn:hover:not(:disabled) {
+  background: rgb(255 250 243 / 0.7);
+}
+.turn:disabled {
+  opacity: 0.2;
+}
+.chrome-off .turn:not(:focus-visible) {
+  opacity: 0.25;
+}
+
+.paper {
+  background-color: var(--paper);
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .45 0 0 0 0 .35 0 0 0 0 .25 0 0 0 .07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"),
+    radial-gradient(ellipse at 50% 50%, transparent 60%, rgb(160 120 80 / 0.08));
+}
+
+.epub-paper {
+  position: relative;
+  height: 100%;
+  max-width: 700px;
+  margin: 0 auto;
+  border-radius: 3px 10px 10px 3px;
+  padding: clamp(24px, 5vh, 52px) clamp(20px, 5vw, 56px);
+  box-shadow:
+    inset 12px 0 18px -14px rgb(90 60 30 / 0.3),
+    0 1px 2px rgb(46 31 61 / 0.1),
+    0 18px 40px -16px rgb(46 31 61 / 0.35);
+}
+.epub-host {
+  width: 100%;
+  height: 100%;
+}
+/* the page-curl: a still copy of the old page folding away over the new one (epubCurl.ts) */
+.epub-curl {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  border-radius: inherit;
+  overflow: hidden;
+}
+.epub-curl-flat {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+}
+.epub-curl-shade,
+.epub-curl-cast,
+.epub-curl-flap {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+}
+.epub-curl-flap {
+  box-shadow: 0 0 18px rgb(60 40 70 / 0.12);
+}
+/* epub.js draws highlights in an SVG above the page; multiply keeps the ink crisp underneath */
+.epub-host svg {
+  mix-blend-mode: multiply;
+}
+.epub-hl,
+.epub-hl-note {
+  cursor: pointer;
+}
+.epub-hl-note rect {
+  stroke: var(--lav-600);
+  stroke-width: 0;
+}
+
+.pdf-stage {
+  height: 100%;
+  overflow: auto;
+  display: flex;
+  padding: 16px;
+  touch-action: pan-x pan-y pinch-zoom;
+}
+.pdf-page-wrap {
+  position: relative;
+  margin: auto;
+  flex: none;
+}
+.pdf-page {
+  position: relative;
+  background: #fff;
+  box-shadow:
+    0 0 0 10px var(--paper),
+    0 0 0 11px rgb(160 120 80 / 0.15),
+    0 20px 44px -14px rgb(46 31 61 / 0.4);
+  border-radius: 1px;
+}
+.pdf-page canvas {
+  display: block;
+}
+.hl-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.pdf-hl {
+  position: absolute;
+  background: var(--hl);
+  mix-blend-mode: multiply;
+  border-radius: 3px;
+  opacity: 0.78;
+  overflow: hidden;
+}
+.pdf-hl.has-note {
+  box-shadow: inset 0 -2px 0 var(--lav-600);
+}
+.glitter::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle, rgb(255 255 255 / 0.95) 0.7px, transparent 1.3px),
+    radial-gradient(circle, rgb(255 248 214 / 0.9) 0.5px, transparent 1px);
+  background-size: 17px 11px, 23px 9px;
+  background-position: 0 1px, 8px 4px;
+  mix-blend-mode: screen;
+  animation: sparkle-in 1.4s ease-out;
+}
+@keyframes sparkle-in {
+  from {
+    opacity: 0;
+    background-position: -20px 1px, 30px 4px;
+  }
+}
+/* the page corner: a folded dog-ear to bookmark; a pressed flower once bookmarked */
+.page-bookmark {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 54px;
+  height: 54px;
+  padding: 0;
+  border: 0;
+  background: none;
+  z-index: 7;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.dog-ear {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 26px;
+  height: 26px;
+  background: linear-gradient(225deg, var(--lav-50) 0 48%, #e7dccb 50%, #f6efe2 72%);
+  box-shadow: -2px 2px 5px rgb(0 0 0 / 0.12);
+  border-bottom-left-radius: 4px;
+  transition: width 0.25s var(--ease), height 0.25s var(--ease);
+}
+.page-bookmark:hover .dog-ear,
+.page-bookmark:focus-visible .dog-ear {
+  width: 38px;
+  height: 38px;
+}
+.page-bookmark.on {
+  width: 60px;
+  height: 40px;
+  overflow: visible;
+}
+.flower-bookmark {
+  position: absolute;
+  top: -22px;
+  right: 30px;
+  transform: rotate(7deg);
+  filter: drop-shadow(0 3px 3px rgb(46 31 61 / 0.3));
+  animation: drop-in 0.5s var(--ease);
+  transition: transform 0.2s;
+}
+.page-bookmark.on:hover .flower-bookmark {
+  transform: rotate(0deg) translateY(-3px);
+}
+
+/* the turning page (PDF): a snapshot of the old page lifts off and turns away */
+.pdf-page-wrap {
+  perspective: 2000px;
+}
+/* the page curl is drawn on this canvas (see pageCurl.ts); it's transparent where the new page shows */
+.flip-sheet {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: none;
+  z-index: 6;
+  pointer-events: none;
+}
+.pdf-page {
+  will-change: transform;
+}
+.pdf-stage {
+  touch-action: pan-y pinch-zoom;
+  cursor: grab;
+}
+.pdf-stage:active {
+  cursor: grabbing;
+}
+.pdf-stage .textLayer {
+  cursor: text;
+}
+/* while a page is being flicked, the words stop being selectable */
+.textLayer.turning,
+.textLayer.turning span {
+  user-select: none;
+  -webkit-user-select: none;
+}
+.pdf-stage.pannable {
+  touch-action: pan-x pan-y pinch-zoom;
+  cursor: auto;
+}
+.epub-paper {
+  touch-action: pan-y pinch-zoom;
+  cursor: grab;
+}
+.epub-host {
+  will-change: transform, opacity;
+}
+@keyframes drop-in {
+  from {
+    transform: translateY(-16px) rotate(-4deg);
+    opacity: 0;
+  }
+}
+.scan-note {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  width: min(420px, calc(100% - 32px));
+  background: rgb(255 250 243 / 0.95);
+  border-radius: 12px;
+  box-shadow: var(--shadow-soft);
+  padding: 8px 14px;
+  font-size: 0.82rem;
+  margin: 0;
+  text-align: center;
+}
+.page-turn {
+  animation: page-in 0.28s var(--ease);
+}
+@keyframes page-in {
+  from {
+    opacity: 0.4;
+    transform: translateX(6px);
+  }
+}
+
+.reader-foot {
+  padding: 0 clamp(16px, 8vw, 120px) max(10px, env(safe-area-inset-bottom));
+}
+.reader-foot .progress-line {
+  height: 3px;
+  background: rgb(200 180 230 / 0.5);
+}
+
+/* ---------- margin sticky notes ---------- */
+
+.margin-notes {
+  grid-area: notes;
+  width: 210px;
+  padding: 8px 4px 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow: auto;
+}
+.sticky {
+  position: relative;
+  border: 0;
+  text-align: left;
+  padding: 20px 14px 14px;
+  font-family: var(--hand);
+  font-size: 1.15rem;
+  line-height: 1.15;
+  color: #3d2b3a;
+  transform: rotate(var(--tilt, -2deg));
+  box-shadow: 0 1px 1px rgb(0 0 0 / 0.08), 0 10px 16px -8px rgb(46 31 61 / 0.35);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: transform 0.2s var(--ease);
+  flex: none;
+}
+.sticky:hover {
+  transform: rotate(0deg) translateY(-2px);
+}
+.sticky::before {
+  /* washi tape */
+  content: '';
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  width: 58px;
+  height: 18px;
+  transform: translateX(-50%) rotate(-3deg);
+  background: rgb(255 255 255 / 0.55);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
+}
+.sticky-lilac {
+  background: #e6dbf7;
+}
+.sticky-pink {
+  background: #fbd6e4;
+}
+.sticky-cream {
+  background: #fbf0cc;
+}
+.sticky-sticker {
+  position: absolute;
+  top: -12px;
+  right: -8px;
+  transform: rotate(10deg);
+}
+.sticky-sticker.big {
+  top: -18px;
+  right: -12px;
+}
+.sticky-quote {
+  font-family: var(--read);
+  font-size: 0.72rem;
+  font-style: italic;
+  color: var(--ink-soft);
+}
+.sticky-text {
+  display: -webkit-box;
+  -webkit-line-clamp: 6;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  white-space: pre-wrap;
+}
+
+/* ---------- floating toolbars ---------- */
+
+.floating-bar {
+  position: fixed;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border-radius: 999px;
+  background: var(--plum-900);
+  color: var(--cream);
+  box-shadow: var(--shadow-pop);
+  animation: fade-in 0.15s ease;
+}
+.floating-bar.above {
+  transform: translate(-50%, -100%);
+}
+.floating-bar.below {
+  transform: translate(-50%, 0);
+}
+.swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid rgb(255 255 255 / 0.85);
+  background-image: radial-gradient(circle, #fff 0.8px, transparent 1.4px);
+  background-size: 7px 7px;
+  flex: none;
+}
+.swatch.on {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+.bar-btn {
+  border: 0;
+  background: rgb(255 255 255 / 0.1);
+  color: var(--cream);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 0.82rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+.bar-btn:hover {
+  background: rgb(255 255 255 / 0.2);
+}
+
+/* ---------- notes panel ---------- */
+
+.notes-panel {
+  position: fixed;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: min(380px, 100vw);
+  z-index: 45;
+  background: var(--cream);
+  box-shadow: var(--shadow-pop);
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  gap: 12px;
+  animation: slide-in 0.3s var(--ease);
+}
+@keyframes slide-in {
+  from {
+    transform: translateX(30px);
+    opacity: 0;
+  }
+}
+.notes-panel header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.notes-panel h2 {
+  font-family: var(--display);
+  font-variation-settings: 'SOFT' 100;
+  font-size: 1.3rem;
+  color: var(--lav-700);
+  margin: 0;
+}
+.notes-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.note-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  border-radius: 12px;
+  background: rgb(240 231 246 / 0.45);
+}
+.note-go {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  gap: 10px;
+  border: 0;
+  background: none;
+  text-align: left;
+  padding: 10px;
+  border-radius: 12px;
+}
+.note-go:hover {
+  background: var(--lav-100);
+}
+.note-icon {
+  flex: none;
+  width: 22px;
+  display: flex;
+  justify-content: center;
+  padding-top: 2px;
+}
+.mini-swatch {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+}
+.mini-sticky {
+  width: 16px;
+  height: 16px;
+  transform: rotate(-6deg);
+  box-shadow: 0 2px 3px rgb(0 0 0 / 0.15);
+}
+.note-main {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+.note-quote {
+  font-style: italic;
+  font-size: 0.88rem;
+  color: var(--ink);
+}
+.note-text {
+  font-family: var(--hand);
+  font-size: 1.15rem;
+  color: var(--lav-700);
+  white-space: pre-wrap;
+}
+.note-actions {
+  display: flex;
+  padding: 6px 4px 0 0;
+}
+.notes-empty {
+  text-align: center;
+  color: var(--ink-soft);
+  padding: 30px 12px;
+}
+
+/* ---------- note editor ---------- */
+
+.note-editor {
+  position: relative;
+  width: min(360px, 100%);
+  padding: 26px 20px 16px;
+  box-shadow: var(--shadow-pop);
+  transform: rotate(-1deg);
+}
+.note-editor.pop-in {
+  animation: note-pop 0.32s var(--ease);
+}
+@keyframes note-pop {
+  from {
+    transform: rotate(-6deg) scale(0.9);
+    opacity: 0;
+  }
+}
+.note-editor::before {
+  content: '';
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  width: 80px;
+  height: 22px;
+  transform: translateX(-50%) rotate(-2deg);
+  background: rgb(255 255 255 / 0.55);
+}
+.note-editor .note-quote {
+  margin: 0 0 8px;
+  font-size: 0.82rem;
+  color: var(--ink-soft);
+}
+.note-editor textarea {
+  width: 100%;
+  border: 0;
+  resize: vertical;
+  background: repeating-linear-gradient(180deg, transparent 0 29px, rgb(90 61 120 / 0.15) 29px 30px);
+  font-family: var(--hand);
+  font-size: 1.45rem;
+  line-height: 30px;
+  color: #3d2b3a;
+  outline: none;
+  min-height: 150px;
+}
+.note-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 10px 0 12px;
+}
+.note-color {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  border: 2px solid rgb(255 255 255 / 0.9);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 0.2);
+}
+.note-color.on,
+.sticker-btn.on {
+  outline: 2px solid var(--lav-600);
+  outline-offset: 2px;
+}
+.stickers {
+  gap: 4px;
+}
+.sticker-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 0;
+  background: rgb(255 255 255 / 0.5);
+  display: grid;
+  place-items: center;
+  color: var(--ink-soft);
+}
+.note-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+@media (max-width: 900px) {
+  .reader-body {
+    grid-template-columns: 0 minmax(0, 1fr) 0;
+    grid-template-rows: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'prev stage next'
+      '. notes .';
+    padding: 0 8px 6px;
+  }
+  .turn {
+    display: none;
+  }
+  .margin-notes {
+    width: auto;
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: visible;
+    padding: 14px 4px 6px;
+    gap: 12px;
+  }
+  .sticky {
+    width: 150px;
+    max-height: 92px;
+    font-size: 1rem;
+    padding: 14px 10px 8px;
+  }
+  .sticky .sticky-quote {
+    display: none;
+  }
+  .sticky-text {
+    -webkit-line-clamp: 3;
+  }
+  .epub-paper {
+    padding: 22px 18px;
+    border-radius: 3px 8px 8px 3px;
+  }
+  .pdf-stage {
+    padding: 12px 6px;
+  }
+  .notes-panel {
+    top: auto;
+    height: min(75dvh, 600px);
+    width: 100%;
+    border-radius: 20px 20px 0 0;
+    animation-name: sheet-in;
+  }
+  .flower-bookmark {
+    right: 18px;
+  }
+}
+@keyframes sheet-in {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+}
+
+/* ---------- highlighter + eraser ---------- */
+
+.tool-btn {
+  position: relative;
+}
+.pen-dot {
+  position: absolute;
+  top: 6px;
+  right: 10px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px #fff;
+}
+.pen-panel {
+  display: grid;
+  gap: 10px;
+  width: 230px;
+}
+.pen-swatches {
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.pen-panel .swatch {
+  width: 34px;
+  height: 34px;
+}
+.eraser-btn {
+  justify-content: center;
+  color: var(--lav-700, #4a3463);
+  font-weight: 600;
+  border: 1.5px dashed var(--lav-500, #9b7fc8);
+  border-radius: 999px;
+  padding: 8px 12px;
+}
+.eraser-btn.on {
+  background: var(--lav-100, #f1eafb);
+}
+.reader.erasing .pdf-stage,
+.reader.erasing .epub-host {
+  cursor: cell;
+}
+.reader.erasing .pdf-hl {
+  outline: 1.5px dashed rgb(200 35 74 / 0.6);
+  outline-offset: 1px;
+}
+
+/* The floating tools button and the page label in the footer only exist on phones. */
+.tools-fab,
+.foot-label {
+  display: none;
+}
+
+/*
+ * Phones: the page is the whole screen, like holding a real book. The back
+ * arrow and one floating button sit over it; the tools fold out from that
+ * button as a column on the side.
+ */
+@media (max-width: 640px) {
+  .reader {
+    grid-template-rows: minmax(0, 1fr) auto;
+    background: #fff;
+  }
+  .reader-bar {
+    position: absolute;
+    inset: 0 0 auto 0;
+    padding: max(10px, env(safe-area-inset-top)) 10px 0;
+    pointer-events: none;
+    justify-content: space-between;
+  }
+  .chrome-off .reader-bar {
+    transform: none;
+  }
+  .reader-bar > * {
+    pointer-events: auto;
+  }
+  .reader-bar > .icon-btn {
+    width: 40px;
+    height: 40px;
+    background: rgb(255 250 243 / 0.9);
+    box-shadow: 0 2px 10px -3px rgb(46 31 61 / 0.45);
+  }
+  .reader-title {
+    display: none;
+  }
+  .tools-fab {
+    display: grid;
+    place-items: center;
+    position: fixed;
+    right: 12px;
+    bottom: max(22px, calc(env(safe-area-inset-bottom) + 14px));
+    width: 52px;
+    height: 52px;
+    border: 0;
+    border-radius: 50%;
+    background: var(--lav-700);
+    color: var(--cream);
+    box-shadow: 0 6px 18px -4px rgb(46 31 61 / 0.6);
+    z-index: 30;
+    transition: transform 0.2s var(--ease);
+  }
+  .tools-fab:active {
+    transform: scale(0.94);
+  }
+  /* a little gold dot when a tool is in use (highlighter, eraser, placing a note) */
+  .tools-fab.busy::after {
+    content: '';
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--gold);
+    box-shadow: 0 0 0 2px var(--lav-700);
+  }
+  .reader-tools {
+    position: fixed;
+    right: 12px;
+    bottom: max(86px, calc(env(safe-area-inset-bottom) + 78px));
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    z-index: 30;
+    pointer-events: none;
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 0.2s var(--ease), transform 0.2s var(--ease);
+  }
+  .tools-open .reader-tools {
+    pointer-events: auto;
+    opacity: 1;
+    transform: none;
+  }
+  /* each tool is a pill: icon and label side by side */
+  .reader-tools .tool-btn {
+    flex-direction: row;
+    gap: 8px;
+    min-width: 0;
+    padding: 9px 16px 9px 12px;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    background: var(--cream);
+    box-shadow: 0 4px 14px -4px rgb(46 31 61 / 0.45);
+  }
+  .reader-tools .tool-btn.on {
+    background: var(--lav-700);
+  }
+  .reader-tools .pen-dot {
+    top: 4px;
+    right: 6px;
+  }
+  /* the tool panels (flowers, highlighter, zoom) open as a sheet at the bottom */
+  .reader-tools .popover {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    top: auto;
+    bottom: max(12px, env(safe-area-inset-bottom));
+    width: auto;
+    max-height: 60dvh;
+    overflow: auto;
+    z-index: 35;
+  }
+  .reader-body {
+    padding: 0;
+  }
+  .pdf-stage {
+    padding: 0;
+  }
+  .pdf-page {
+    box-shadow: none;
+  }
+  .reader-foot {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 0 0 env(safe-area-inset-bottom);
+    pointer-events: none;
+  }
+  .foot-label {
+    display: block;
+    padding: 0 0 6px 14px;
+    font-size: 0.72rem;
+    color: var(--lav-600);
+    opacity: 0.8;
+  }
+}
+/* Highlighter picked: on touch the finger draws the highlight, so the page doesn't scroll, swipe or pop the long-press menu. */
+.reader.penning .pdf-stage {
+  touch-action: none;
+}
+.reader.penning .textLayer {
+  -webkit-touch-callout: none;
+}
+/* The selected words preview the colour she's about to save. */
+.pdf-page .textLayer ::selection {
+  background: rgb(180 150 230 / 0.4);
+  /* see-through, so the words show under the colour, like a real highlighter */
+  background: color-mix(in srgb, var(--sel, #b39ddb) 50%, transparent);
+}
+.pdf-page .textLayer br::selection {
+  background: transparent;
+}
+.floating-bar .save-hl {
+  background: var(--lav-600, #7e64b3);
+  color: #fff;
+  border-radius: 999px;
+  padding-inline: 12px;
+}
+.floating-bar .icon-only {
+  padding-inline: 8px;
+}@media (max-width: 640px) {
+  .floating-bar {
+    max-width: calc(100vw - 16px);
+    gap: 4px;
+    padding: 5px 6px;
+  }
+  .floating-bar .swatch {
+    width: 26px;
+    height: 26px;
+  }
+  .floating-bar .bar-btn {
+    padding-inline: 10px;
+  }
+}
+/* ---------- go to page (PDFs) ---------- */
+
+/* the page number is tappable: it opens the "Go to page" box */
+.page-jump-btn {
+  border: 0;
+  background: none;
+  padding: 2px 6px;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 0.78rem;
+  color: var(--lav-600);
+  cursor: pointer;
+  text-decoration: underline dotted rgb(120 90 160 / 0.5);
+  text-underline-offset: 3px;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+.page-jump-btn:hover,
+.page-jump-btn:focus-visible {
+  background: rgb(155 127 200 / 0.14);
+}
+.reader-foot .foot-label.page-jump-btn {
+  pointer-events: auto;
+  margin: 0 0 4px 8px;
+}
+.goto-page {
+  width: min(320px, calc(100vw - 32px));
+  padding: 18px 18px 12px;
+  border-radius: 20px;
+  background: var(--cream);
+  border: 1.5px solid var(--gold, #e6c47c);
+  box-shadow: var(--shadow-pop);
+  text-align: center;
+  animation: rise 0.25s var(--ease) both;
+}
+.goto-title {
+  margin: 0 0 10px;
+  font-family: var(--hand);
+  font-size: 1.4rem;
+  color: var(--lav-700);
+}
+.goto-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+.goto-row .input {
+  width: 92px;
+  text-align: center;
+  font-size: 1.1rem;
+}
+.goto-cancel {
+  margin-top: 8px;
+  font-size: 0.85rem;
+}
+/* EPUBs: chapters list + "% through" */
+.goto-place {
+  width: min(380px, calc(100vw - 32px));
+  max-height: calc(100dvh - 48px);
+  display: flex;
+  flex-direction: column;
+}
+.goto-sub {
+  margin: 6px 0 6px;
+  font-size: 0.78rem;
+  color: var(--lav-600);
+  text-align: left;
+}
+.goto-chapters {
+  list-style: none;
+  margin: 0 0 6px;
+  padding: 4px;
+  max-height: min(46dvh, 340px);
+  overflow-y: auto;
+  border-radius: 14px;
+  background: rgb(155 127 200 / 0.07);
+  text-align: left;
+}
+.goto-chapters button {
+  width: 100%;
+  border: 0;
+  background: none;
+  text-align: left;
+  padding: 8px 12px;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 0.92rem;
+  color: var(--lav-700);
+  cursor: pointer;
+}
+.goto-chapters button:hover,
+.goto-chapters button:focus-visible {
+  background: rgb(155 127 200 / 0.18);
+}

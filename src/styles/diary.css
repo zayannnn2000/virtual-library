@@ -1,0 +1,831 @@
+/* ---------- the diary front door ---------- */
+
+.diary-scene {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+  padding: max(20px, env(safe-area-inset-top)) 16px max(20px, env(safe-area-inset-bottom));
+  background:
+    radial-gradient(circle at 30% 20%, rgb(246 201 218 / 0.9), transparent 50%),
+    radial-gradient(circle at 80% 80%, rgb(200 180 230 / 0.9), transparent 55%),
+    var(--lav-100);
+  overflow: hidden;
+  touch-action: none;
+}
+/* as the page lifts, the diary grows and dissolves — straight into the shelves waiting behind it */
+.diary-scene.phase-gone {
+  opacity: 0;
+  transition: opacity 0.65s var(--ease) 0.08s;
+  pointer-events: none;
+}
+.phase-gone .diary {
+  transform: translateX(calc(var(--dw) * 0.5)) scale(1.22);
+  transition: transform 0.7s var(--ease);
+}
+@media (max-width: 700px) {
+  .phase-gone .diary {
+    transform: scale(1.22);
+  }
+}
+
+.diary-sparkles span {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  background: #fff;
+  clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%);
+  animation: twinkle 2.8s ease-in-out infinite;
+  opacity: 0.8;
+}
+@keyframes twinkle {
+  50% {
+    transform: scale(1.8) rotate(45deg);
+    opacity: 0.25;
+  }
+}
+.diary-butterfly {
+  position: absolute;
+  width: 46px;
+  color: var(--lav-400);
+  animation: flutter 6s ease-in-out infinite;
+}
+.diary-butterfly.b1 {
+  top: 12%;
+  left: 10%;
+}
+.diary-butterfly.b2 {
+  bottom: 14%;
+  right: 12%;
+  width: 34px;
+  color: var(--pink-400);
+  animation-delay: -2s;
+}
+@keyframes flutter {
+  25% {
+    transform: translate(10px, -14px) rotate(8deg) scaleX(0.85);
+  }
+  50% {
+    transform: translate(-6px, -24px) rotate(-6deg);
+  }
+  75% {
+    transform: translate(-12px, -8px) rotate(4deg) scaleX(0.9);
+  }
+}
+
+/* the book: shrinks to make room for the PIN pad, grows back to open */
+.diary {
+  /* 80vw leaves room for the lock strap, which pokes out past the cover's edge */
+  --dw: min(450px, 80vw, 64dvh);
+  position: relative;
+  width: var(--dw);
+  aspect-ratio: 3 / 4;
+  flex: none;
+  transition: width 0.6s var(--ease), transform 0.6s var(--ease);
+}
+.phase-pin .diary {
+  --dw: min(270px, 58vw, 32dvh);
+}
+.phase-open .diary,
+.phase-turning .diary {
+  transform: translateX(calc(var(--dw) * 0.5));
+}
+@media (max-width: 700px) {
+  /* on phones the open book stays centred; the cover swings off-screen to the left */
+  .phase-open .diary,
+  .phase-turning .diary {
+    transform: none;
+  }
+}
+
+.diary-under,
+.diary-page,
+.diary-cover {
+  position: absolute;
+  inset: 0;
+  border-radius: 6px 18px 18px 6px;
+}
+.diary-under {
+  background:
+    repeating-linear-gradient(180deg, transparent 0 27px, rgb(169 139 208 / 0.22) 27px 28px),
+    var(--ivory);
+  box-shadow: var(--shadow-pop);
+}
+.diary-under-flower {
+  position: absolute;
+  left: 50%;
+  top: 40%;
+  transform: translate(-50%, -50%) rotate(-12deg);
+  opacity: 0.8;
+}
+
+/* the first page — this is what she swipes */
+.diary-page {
+  transform-origin: left center;
+  transform-style: preserve-3d;
+  transform: perspective(1600px) rotateY(0deg);
+  will-change: transform;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+.diary-page:active {
+  cursor: grabbing;
+}
+.diary-page-front,
+.diary-page-back {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+.diary-page-front {
+  background:
+    linear-gradient(90deg, rgb(0 0 0 / 0.07), transparent 9%),
+    repeating-linear-gradient(180deg, transparent 0 27px, rgb(169 139 208 / 0.25) 27px 28px),
+    var(--ivory);
+  box-shadow: inset 10px 0 18px -8px rgb(0 0 0 / 0.15);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 26px 24px 26px 26px;
+  overflow: hidden;
+}
+.diary-page-back {
+  transform: rotateY(180deg);
+  background:
+    repeating-linear-gradient(180deg, transparent 0 27px, rgb(169 139 208 / 0.18) 27px 28px),
+    #f5ecdd;
+}
+.diary-hello {
+  font-family: var(--hand);
+  font-size: clamp(1.6rem, 6vw, 2rem);
+  color: var(--rose-600);
+  margin: 0 0 6px;
+}
+.diary-quote {
+  font-family: var(--display);
+  font-variation-settings: 'SOFT' 100;
+  font-style: italic;
+  font-size: clamp(1.05rem, 4.2vw, 1.25rem);
+  line-height: 1.25;
+  color: var(--lav-700);
+  margin: 0;
+}
+.diary-by {
+  font-family: var(--hand);
+  font-size: 1.15rem;
+  color: var(--ink-soft);
+  margin: 6px 0 0;
+}
+.swipe-hint {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 22px;
+  font-family: var(--hand);
+  font-size: 1.2rem;
+  color: var(--lav-500);
+}
+.swipe-hand {
+  width: 30px;
+  height: 18px;
+  border-radius: 99px;
+  background: linear-gradient(90deg, transparent, rgb(169 139 208 / 0.6));
+  position: relative;
+  animation: swipe-nudge 2.2s var(--ease) infinite;
+}
+.swipe-hand::after {
+  content: '';
+  position: absolute;
+  right: -2px;
+  top: 3px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--lav-500);
+  box-shadow: 0 0 0 4px rgb(169 139 208 / 0.25);
+}
+@keyframes swipe-nudge {
+  0%,
+  20% {
+    transform: translateX(14px);
+    opacity: 0;
+  }
+  40% {
+    opacity: 1;
+  }
+  80%,
+  100% {
+    transform: translateX(-16px);
+    opacity: 0;
+  }
+}
+.diary-turn {
+  position: absolute;
+  right: 16px;
+  bottom: 56px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 0;
+  background: rgb(200 180 230 / 0.35);
+  color: var(--lav-700);
+  display: grid;
+  place-items: center;
+  transition: background 0.2s;
+}
+.diary-turn:hover {
+  background: rgb(200 180 230 / 0.6);
+}
+.diary-pressed {
+  position: absolute;
+  left: 22px;
+  bottom: 12px;
+  transform: rotate(-14deg);
+  opacity: 0.9;
+}
+/* a corner gently lifting, inviting the turn */
+.page-curl {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 46px;
+  height: 46px;
+  border-radius: 0 0 18px 0;
+  background: linear-gradient(315deg, var(--lav-50) 0 45%, #e9dcc6 50%, var(--ivory) 70%);
+  box-shadow: -3px -3px 8px rgb(0 0 0 / 0.08);
+  animation: curl 2.6s ease-in-out infinite;
+  transform-origin: 100% 100%;
+}
+@keyframes curl {
+  50% {
+    transform: scale(1.25);
+  }
+}
+
+/* the cover */
+.diary-cover {
+  transform-origin: left center;
+  transform-style: preserve-3d;
+  transform: perspective(1800px) rotateY(0deg);
+  transition: transform 1.15s cubic-bezier(0.6, 0.05, 0.25, 1);
+  box-shadow:
+    inset 14px 0 18px -10px rgb(0 0 0 / 0.35),
+    var(--shadow-pop);
+  overflow: visible;
+}
+.diary-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 6px 18px 18px 6px;
+  backface-visibility: hidden;
+}
+.diary-cover::after {
+  /* glitter dusting */
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background-image:
+    radial-gradient(circle, rgb(255 255 255 / 0.9) 0.6px, transparent 1.2px),
+    radial-gradient(circle, rgb(255 236 180 / 0.8) 0.5px, transparent 1px);
+  background-size: 23px 19px, 31px 27px;
+  background-position: 0 0, 11px 7px;
+  opacity: 0.5;
+  pointer-events: none;
+  backface-visibility: hidden;
+}
+.phase-open .diary-cover,
+.phase-turning .diary-cover,
+.phase-gone .diary-cover {
+  transform: perspective(1800px) rotateY(-172deg);
+  pointer-events: none;
+}
+.diary-cover-back {
+  position: absolute;
+  inset: 0;
+  border-radius: 18px 6px 6px 18px;
+  transform: rotateY(180deg);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  background:
+    radial-gradient(circle at 12px 12px, #e7a9c6 3px, transparent 3.6px) 0 0 / 34px 34px,
+    radial-gradient(circle at 29px 29px, #b29ad6 2.6px, transparent 3.2px) 0 0 / 34px 34px,
+    radial-gradient(circle at 29px 12px, rgb(147 168 117 / 0.6) 1.6px, transparent 2px) 0 0 / 34px 34px,
+    #f4e9f6;
+  box-shadow: inset -12px 0 18px -10px rgb(0 0 0 / 0.2);
+  display: grid;
+  place-items: center;
+}
+.bookplate {
+  background: var(--ivory);
+  border: 1.5px solid #d9b46a;
+  outline: 1px solid #d9b46a;
+  outline-offset: 3px;
+  border-radius: 10px;
+  padding: 14px 22px;
+  text-align: center;
+  box-shadow: 0 6px 14px -8px rgb(90 61 120 / 0.5);
+}
+.bookplate span {
+  display: block;
+  font-family: var(--hand);
+  color: var(--lav-600);
+  font-size: 1rem;
+}
+.bookplate strong {
+  font-family: 'Pinyon Script', var(--hand);
+  font-weight: 400;
+  font-size: 1.9rem;
+  color: var(--lav-700);
+}
+.diary-cover-title {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  backface-visibility: hidden;
+  pointer-events: none;
+}
+.diary-kicker {
+  font-family: var(--hand);
+  color: #6a3f8a;
+  font-size: clamp(0.85rem, 3vw, 1.05rem);
+  margin: 0;
+}
+.diary-name {
+  font-family: 'Great Vibes', 'Pinyon Script', var(--hand);
+  font-weight: 400;
+  font-size: calc(var(--dw) * 0.105);
+  color: #fbe9b3;
+  text-shadow:
+    0 1px 0 #b8892f,
+    0 2px 2px rgb(90 50 120 / 0.45),
+    0 0 14px rgb(255 236 180 / 0.45);
+  margin: 0;
+  line-height: 1.1;
+}
+.diary-ribbon {
+  position: absolute;
+  bottom: -26px;
+  left: 30%;
+  width: 12px;
+  height: 40px;
+  background: linear-gradient(90deg, #5d3f8a, #7d5aae 50%, #5d3f8a);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 80%, 0 100%);
+  backface-visibility: hidden;
+}
+
+.diary-strap {
+  position: absolute;
+  right: -8px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 70px;
+  height: 46px;
+  border-radius: 10px 4px 4px 10px;
+  background: linear-gradient(180deg, #b480d6, #8e5cb8);
+  box-shadow: 0 3px 8px rgb(0 0 0 / 0.3), inset 0 0 0 1.5px rgb(232 199 122 / 0.7);
+  display: grid;
+  place-items: center;
+  backface-visibility: hidden;
+}
+/* the "tap the heart lock" speech bubble, pointing down at the lock */
+.lock-bubble {
+  position: absolute;
+  bottom: calc(100% + 14px);
+  right: -6px;
+  padding: 8px 14px 9px;
+  border-radius: 16px;
+  background: #fffaf3;
+  border: 1.5px solid #e6c47c;
+  box-shadow: 0 8px 20px -8px rgb(46 31 61 / 0.55);
+  font-family: var(--hand);
+  font-size: clamp(1rem, 2.4vw, 1.25rem);
+  line-height: 1.1;
+  color: var(--lav-700);
+  white-space: nowrap;
+  pointer-events: none;
+  transform-origin: calc(100% - 30px) calc(100% + 10px);
+  animation:
+    bubble-pop 0.5s cubic-bezier(0.3, 1.6, 0.5, 1) 0.9s both,
+    bubble-bob 2.4s ease-in-out 1.4s infinite;
+}
+.lock-bubble::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  right: 26px;
+  width: 12px;
+  height: 12px;
+  margin-top: -6px;
+  background: #fffaf3;
+  border-right: 1.5px solid #e6c47c;
+  border-bottom: 1.5px solid #e6c47c;
+  transform: rotate(45deg);
+}
+@keyframes bubble-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.4) translateY(10px);
+  }
+}
+@keyframes bubble-bob {
+  50% {
+    transform: translateY(-5px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lock-bubble {
+    animation: none;
+  }
+}
+.diary-lock {
+  width: 52px;
+  height: 56px;
+  border: 0;
+  background: none;
+  padding: 0;
+  border-radius: 12px;
+  animation: lock-nudge 2.4s ease-in-out infinite;
+}
+.diary-lock:disabled {
+  cursor: default;
+  animation: none;
+}
+.diary-lock svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 2px 2px rgb(0 0 0 / 0.35));
+}
+.diary-lock .shackle {
+  transition: transform 0.5s var(--ease);
+}
+.phase-unlocking .diary-lock .shackle,
+.phase-open .diary-lock .shackle {
+  transform: translateY(-7px);
+}
+.phase-unlocking .diary-lock {
+  animation: lock-pop 0.6s var(--ease);
+}
+@keyframes lock-pop {
+  40% {
+    transform: scale(1.18) rotate(-6deg);
+  }
+}
+@keyframes lock-nudge {
+  0%,
+  80%,
+  100% {
+    transform: rotate(0);
+  }
+  85% {
+    transform: rotate(-8deg);
+  }
+  90% {
+    transform: rotate(8deg);
+  }
+  95% {
+    transform: rotate(-4deg);
+  }
+}
+
+.diary-below {
+  position: relative;
+  width: min(380px, 100%);
+  min-height: 2em;
+  display: flex;
+  justify-content: center;
+}
+.diary-hint {
+  font-family: var(--hand);
+  font-size: 1.3rem;
+  color: var(--lav-700);
+  margin: 0;
+  animation: rise 0.6s var(--ease) both 0.4s;
+}
+
+/* ---------- PIN panel ---------- */
+
+.pin-panel {
+  width: 100%;
+  animation: rise 0.55s var(--ease) both;
+}
+.pin-card {
+  text-align: center;
+  background: rgb(255 250 243 / 0.88);
+  backdrop-filter: blur(6px);
+  border-radius: 22px;
+  padding: 16px 16px 14px;
+  box-shadow: var(--shadow-soft);
+}
+.pin-card .field {
+  text-align: left;
+}
+.pin-note {
+  background: var(--lav-100);
+  border-radius: 12px;
+  padding: 8px 12px;
+  font-size: 0.9rem;
+  margin: 0 0 12px;
+}
+.pinpad {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.pin-label {
+  font-family: var(--hand);
+  font-size: 1.4rem;
+  color: var(--lav-600);
+  margin: 0 0 10px;
+}
+.pin-dots {
+  display: flex;
+  gap: 12px;
+}
+.pin-dots span {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  border: 2px solid var(--lav-400);
+  transition: background 0.15s, transform 0.15s;
+}
+.pin-dots span.filled {
+  background: radial-gradient(circle at 35% 35%, #fff 0 15%, var(--pink-400) 45%, var(--lav-500));
+  border-color: var(--lav-500);
+  transform: scale(1.12);
+}
+.pin-dots.shake {
+  animation: pin-shake 0.42s;
+}
+@keyframes pin-shake {
+  20%,
+  60% {
+    transform: translateX(-8px);
+  }
+  40%,
+  80% {
+    transform: translateX(8px);
+  }
+}
+.pin-error {
+  min-height: 1.3em;
+  margin: 6px 0 4px;
+  color: var(--danger);
+  font-size: 0.86rem;
+}
+.pin-keys {
+  display: grid;
+  grid-template-columns: repeat(3, 60px);
+  gap: 8px 14px;
+}
+.pin-keys button {
+  height: 52px;
+  border-radius: 50%;
+  border: 1.5px solid var(--lav-200);
+  background:
+    radial-gradient(circle at 50% 20%, rgb(255 255 255 / 0.95), transparent 70%),
+    var(--cream);
+  font-family: var(--display);
+  font-variation-settings: 'SOFT' 100;
+  font-size: 1.35rem;
+  font-weight: 650;
+  color: var(--lav-700);
+  box-shadow: 0 4px 10px -6px rgb(90 61 120 / 0.5);
+  transition: transform 0.1s, background 0.15s;
+  display: grid;
+  place-items: center;
+  touch-action: manipulation;
+}
+.pin-keys button:hover:not(:disabled) {
+  background: var(--lav-100);
+}
+.pin-keys button:active:not(:disabled) {
+  transform: scale(0.92);
+}
+.pin-forgot {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+}
+.pin-forgot p {
+  margin: 0;
+}
+.pin-links {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 2px 14px;
+}
+.link-btn.quiet {
+  color: var(--ink-soft);
+  font-size: 0.8rem;
+}
+.pin-dialog {
+  width: min(380px, 100%);
+}
+
+@media (max-height: 700px) {
+  .pin-keys button {
+    height: 44px;
+  }
+  .pin-keys {
+    grid-template-columns: repeat(3, 54px);
+  }
+}
+
+/* ---------- the garden: butterflies and flowers ---------- */
+
+/* on the main page, butterflies drift behind the content and show in the margins */
+.app > .site-header,
+.app > main,
+.app > .site-footer {
+  position: relative;
+  z-index: 1;
+}
+/* The header's menu opens over the search bar and shelf. */
+.app > .site-header {
+  z-index: 3;
+}
+
+.butterflies {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+.diary-scene .butterflies.behind {
+  position: absolute;
+}
+.diary-scene .diary,
+.diary-scene .diary-below {
+  z-index: 1;
+}
+.butterfly {
+  position: absolute;
+  left: 0;
+  top: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  pointer-events: auto;
+  cursor: pointer;
+  will-change: transform;
+  filter: drop-shadow(0 3px 4px rgb(90 61 120 / 0.25));
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.butterfly svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.butterfly .wing {
+  transform-box: fill-box;
+  animation: flap var(--flap, 0.28s) ease-in-out infinite alternate;
+}
+.butterfly .wing.left {
+  transform-origin: right center;
+}
+.butterfly .wing.right {
+  transform-origin: left center;
+}
+@keyframes flap {
+  to {
+    transform: scaleX(0.25);
+  }
+}
+.butterfly.startled .wing {
+  animation-duration: 0.09s;
+}
+.butterfly.startled svg {
+  animation: startle 0.6s var(--ease);
+}
+@keyframes startle {
+  30% {
+    transform: scale(1.35) rotate(-12deg);
+  }
+}
+
+.flowerbed {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+}
+.flower {
+  position: absolute;
+  padding: 0;
+  border: 0;
+  background: none;
+  pointer-events: auto;
+  cursor: pointer;
+  transform-origin: 50% 100%;
+  transform: rotate(var(--tilt));
+  animation: sway var(--sway, 4s) ease-in-out infinite alternate;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  filter: drop-shadow(0 2px 3px rgb(90 61 120 / 0.2));
+}
+.flower svg {
+  display: block;
+}
+@keyframes sway {
+  from {
+    transform: rotate(calc(var(--tilt) - 5deg));
+  }
+  to {
+    transform: rotate(calc(var(--tilt) + 5deg));
+  }
+}
+.flower.popped svg {
+  animation: bloom-pop 0.55s var(--ease);
+  transform-origin: 50% 100%;
+}
+@keyframes bloom-pop {
+  35% {
+    transform: scale(1.25);
+  }
+  65% {
+    transform: scale(0.95);
+  }
+}
+.petal {
+  position: fixed;
+  width: 9px;
+  height: 12px;
+  border-radius: 60% 60% 60% 0;
+  z-index: 310;
+  pointer-events: none;
+  margin: -6px 0 0 -5px;
+}
+@media (max-width: 700px) {
+  .flowerbed .flower:nth-child(4n + 2) {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .diary-cover,
+  .diary {
+    transition: none;
+  }
+  .flower,
+  .butterfly .wing {
+    animation: none;
+  }
+}
+
+/*
+ * Phones (iPhone Safari especially): the diary and the PIN keypad together are taller
+ * than the space Safari leaves above its toolbar. While the keypad shows, the diary
+ * gets smaller, the keypad tighter, and the screen can scroll — with room at the
+ * bottom so the last row of keys and the links clear the toolbar and home bar.
+ */
+@media (max-width: 700px), (max-height: 760px) {
+  .diary-scene.phase-pin {
+    justify-content: flex-start;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    gap: 12px;
+    padding-bottom: calc(env(safe-area-inset-bottom) + 96px);
+  }
+  .phase-pin .diary {
+    --dw: min(200px, 46vw, 24dvh);
+  }
+  .phase-pin .pin-card {
+    padding: 12px 12px 10px;
+  }
+  .phase-pin .pin-label {
+    font-size: 1.25rem;
+    margin-bottom: 6px;
+  }
+  .phase-pin .pin-keys {
+    grid-template-columns: repeat(3, 56px);
+    gap: 6px 14px;
+  }
+  .phase-pin .pin-keys button {
+    height: 46px;
+  }
+  /* the keypad sits above the flowers, and the lock shrinks with the smaller diary */
+  .phase-pin .diary-below {
+    position: relative;
+    z-index: 3;
+  }
+  .phase-pin .diary-strap {
+    transform: translateY(-50%) scale(0.68);
+    transform-origin: right center;
+  }
+}

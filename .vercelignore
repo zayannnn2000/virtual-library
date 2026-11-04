@@ -1,0 +1,7 @@
+# Not part of the site: local settings, build output (Vercel builds its own), test files and logs.
+.env.local
+.env*.local
+node_modules
+dist
+.playwright-cli
+*.log

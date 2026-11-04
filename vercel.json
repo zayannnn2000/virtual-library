@@ -1,0 +1,13 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    {
+      "source": "/gutenberg-search",
+      "destination": "https://www.gutenberg.org/ebooks/search.opds/"
+    },
+    {
+      "source": "/gutenberg/:id(\\d+)/:file(pg\\d+(?:-images-3)?(?:\\.epub|\\.cover\\.medium\\.jpg))",
+      "destination": "https://www.gutenberg.org/cache/epub/:id/:file"
+    }
+  ]
+}

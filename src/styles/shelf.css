@@ -1,0 +1,786 @@
+/* ---------- the shelf ---------- */
+
+.shelf-section {
+  padding-top: 22px;
+}
+.shelf-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0 auto 10px;
+  text-align: center;
+}
+/* the name plate doubles as the view dropdown */
+/* the name plate is a button that opens our own little shelf menu (same on phones and laptops) */
+.shelf-picker {
+  position: relative;
+  z-index: 8;
+  display: flex;
+  justify-content: center;
+}
+.shelf-select {
+  position: relative;
+  cursor: pointer;
+}
+.shelf-select:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 4px rgb(255 250 243 / 0.7),
+    0 0 0 6px var(--lav-500),
+    0 8px 18px -10px rgb(90 61 120 / 0.5);
+}
+.shelf-caret {
+  font-size: 0.9rem;
+  color: var(--lav-500);
+  font-style: normal;
+  transition: transform 0.2s var(--ease);
+}
+.shelf-select.open .shelf-caret {
+  transform: rotate(180deg);
+}
+.shelf-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(320px, calc(100vw - 32px));
+  margin: 0;
+  padding: 6px;
+  list-style: none;
+  background:
+    radial-gradient(circle at 50% 0%, rgb(255 255 255 / 0.9), transparent 70%),
+    linear-gradient(180deg, #fffaf3, #f6eadf);
+  border: 1.5px solid var(--gilt, #e6c47c);
+  border-radius: 20px;
+  box-shadow: 0 18px 40px -14px rgb(46 31 61 / 0.5), 0 0 0 4px rgb(255 250 243 / 0.5);
+  animation: shelf-menu-in 0.22s var(--ease) both;
+}
+@keyframes shelf-menu-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -6px) scale(0.97);
+  }
+}
+.shelf-menu li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  cursor: pointer;
+  color: var(--lav-700);
+}
+.shelf-menu li.hi {
+  background: rgb(155 127 200 / 0.12);
+}
+.shelf-menu li.on {
+  background: rgb(155 127 200 / 0.2);
+}
+.shelf-opt-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  text-align: left;
+}
+.shelf-opt-text strong {
+  font-family: var(--display);
+  font-variation-settings: 'SOFT' 100;
+  font-style: italic;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+.shelf-opt-text span {
+  font-family: var(--hand);
+  font-size: 1rem;
+  color: var(--lav-600);
+}
+.shelf-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 6px 26px 8px;
+  font-family: var(--display);
+  font-variation-settings: 'SOFT' 100, 'opsz' 72;
+  font-weight: 750;
+  font-style: italic;
+  font-size: clamp(1.35rem, 3.4vw, 1.9rem);
+  color: var(--lav-700);
+  background:
+    radial-gradient(circle at 50% 0%, rgb(255 255 255 / 0.9), transparent 70%),
+    linear-gradient(180deg, #fffaf3, #f6eadf);
+  border: 1.5px solid var(--gilt, #e6c47c);
+  border-radius: 999px;
+  box-shadow:
+    0 0 0 4px rgb(255 250 243 / 0.7),
+    0 0 0 5px rgb(200 180 230 / 0.6),
+    0 8px 18px -10px rgb(90 61 120 / 0.5);
+}
+.title-sparkle {
+  width: 14px;
+  height: 14px;
+  color: #e3b25c;
+  animation: twinkle-soft 3.2s ease-in-out infinite;
+}
+.title-sparkle:last-child {
+  animation-delay: 1.6s;
+  color: var(--pink-400);
+}
+@keyframes twinkle-soft {
+  50% {
+    transform: scale(0.6) rotate(45deg);
+    opacity: 0.5;
+  }
+}
+.shelf-flourish {
+  margin-top: 6px;
+  font-family: var(--hand);
+  font-size: 1.15rem;
+  color: var(--lav-600);
+}
+/* an empty shelf's message: a flex item beside the add slot, centred in the free space */
+.shelf-empty {
+  flex: 1 1 0;
+  min-width: 0;
+  align-self: center;
+  text-align: center;
+  margin: 0;
+  padding: 0 16px;
+  font-family: var(--hand);
+  font-size: 1.35rem;
+  color: #f2e4d0;
+  opacity: 0.85;
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* fairy lights along the top rail */
+.fairy-lights {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 46px;
+  z-index: 3;
+  pointer-events: none;
+  overflow: visible;
+}
+.fairy-lights .bulb {
+  filter: drop-shadow(0 0 4px rgb(255 226 150 / 0.95)) drop-shadow(0 0 10px rgb(255 214 120 / 0.6));
+  animation: bulb-glow 3.5s ease-in-out infinite;
+}
+@keyframes bulb-glow {
+  50% {
+    opacity: 0.55;
+  }
+}
+
+/* scalloped lace trim under the plank */
+.shelf-lace {
+  height: 12px;
+  margin: 0 6px;
+  background:
+    radial-gradient(circle at 8px 0, #f7f0fb 6px, transparent 6.5px) 0 0 / 16px 12px repeat-x,
+    radial-gradient(circle at 8px 0, rgb(200 180 230 / 0.9) 7.5px, transparent 8px) 0 0 / 16px 12px repeat-x;
+  position: relative;
+  z-index: 2;
+  filter: drop-shadow(0 2px 2px rgb(90 61 120 / 0.2));
+}
+/* one bookcase: shelves stack downward as the library grows */
+.bookcase {
+  position: relative;
+  margin: 0 clamp(6px, 3vw, 44px);
+}
+.shelf-row {
+  position: relative;
+}
+.shelf-row + .shelf-row .shelf-back {
+  border-radius: 0;
+}
+.shelf-row + .shelf-row .shelf-back::before {
+  display: none;
+}
+.shelf-row + .shelf-row .shelf-books {
+  padding-top: 44px;
+  min-height: calc(292px * var(--k) + 44px);
+}
+.shelf-books {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  padding: 74px clamp(24px, 4vw, 56px) 0;
+  min-height: calc(292px * var(--k) + 74px);
+}
+@media (max-width: 640px) {
+  .shelf-books {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
+.shelf-back {
+  position: relative;
+  border-radius: 14px 14px 0 0;
+  border: 12px solid var(--wood-500);
+  border-bottom: 0;
+  background:
+    repeating-linear-gradient(90deg, rgb(255 255 255 / 0.018) 0 2px, transparent 2px 9px, rgb(0 0 0 / 0.05) 9px 10px, transparent 10px 23px),
+    linear-gradient(180deg, #2c1b11, #3d2618 45%, #34200f);
+  box-shadow:
+    inset 0 22px 34px -12px rgb(0 0 0 / 0.65),
+    inset 0 -12px 22px -12px rgb(0 0 0 / 0.55),
+    0 12px 40px -18px rgb(46 31 61 / 0.5);
+}
+.shelf-back::before {
+  /* lavender trim along the top rail */
+  content: '';
+  position: absolute;
+  inset: -12px -12px auto;
+  height: 5px;
+  border-radius: 14px 14px 0 0;
+  background: linear-gradient(90deg, var(--lav-400), var(--pink-400), var(--lav-400));
+  opacity: 0.85;
+}
+
+.shelf-scroll {
+  --k: 1;
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 74px clamp(24px, 4vw, 56px) 0;
+  min-height: calc(292px * var(--k) + 74px);
+  scrollbar-width: thin;
+  scrollbar-color: var(--wood-500) transparent;
+  overscroll-behavior-x: contain;
+}
+.shelf-scroll::-webkit-scrollbar {
+  height: 8px;
+}
+.shelf-scroll::-webkit-scrollbar-thumb {
+  background: var(--wood-500);
+  border-radius: 8px;
+}
+
+.shelf-plank {
+  height: 28px;
+  border-radius: 3px 3px 6px 6px;
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 0.16), transparent 30%, rgb(0 0 0 / 0.18)),
+    repeating-linear-gradient(90deg, rgb(0 0 0 / 0.06) 0 1px, transparent 1px 40px, rgb(255 255 255 / 0.05) 40px 42px, transparent 42px 90px),
+    linear-gradient(90deg, #6b4329, #7d5133 30%, #6a422a 60%, #7a4f31);
+  box-shadow:
+    inset 0 3px 0 var(--lav-300),
+    0 14px 22px -10px rgb(46 31 61 / 0.55);
+  position: relative;
+  z-index: 3;
+}
+.shelf-plank.small {
+  width: 100%;
+  height: 16px;
+}
+
+/* ---------- a book ---------- */
+
+/* Registered as colours, so a spine whose colour is still being measured glides to it instead of snapping. */
+@property --spine {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #6e4f8f;
+}
+@property --ink {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #f3dc9f;
+}
+@property --gilt {
+  syntax: '<color>';
+  inherits: true;
+  initial-value: #e6c47c;
+}
+.book {
+  position: relative;
+  flex: none;
+  width: calc(var(--w) * var(--k));
+  height: calc(var(--h) * var(--k));
+  z-index: 1;
+  transition: --spine 0.8s ease, --ink 0.8s ease, --gilt 0.8s ease;
+}
+.book:not(.settling):hover,
+.book.is-active,
+.book:focus-within {
+  z-index: 6;
+}
+.book-btn {
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  border-radius: 3px;
+  -webkit-tap-highlight-color: transparent;
+}
+.book-btn:focus-visible {
+  box-shadow: none;
+}
+.book-btn:focus-visible .spine {
+  outline: 3px solid var(--gold);
+  outline-offset: 2px;
+}
+
+.book-3d {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform-origin: 50% 100%;
+  transform: perspective(1100px) translate3d(0, 0, 0);
+  transition: transform 0.5s var(--ease);
+}
+.book:not(.settling):hover .book-3d,
+.book.is-active .book-3d {
+  transform: perspective(1100px) translate3d(0, -20px, 46px) rotateY(-44deg);
+}
+.book::after {
+  /* soft contact shadow on the plank */
+  content: '';
+  position: absolute;
+  left: -10%;
+  right: -10%;
+  bottom: -6px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgb(0 0 0 / 0.45);
+  filter: blur(4px);
+  z-index: -1;
+  transition: transform 0.5s var(--ease), opacity 0.5s;
+}
+.book:not(.settling):hover::after,
+.book.is-active::after {
+  transform: scaleX(1.6) translateX(20%);
+  opacity: 0.5;
+}
+
+.face {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.spine {
+  left: 0;
+  width: 100%;
+  border-radius: 3px 3px 2px 2px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 12px 0 10px;
+  color: var(--gold);
+  background:
+    linear-gradient(90deg, rgb(0 0 0 / 0.32) 0%, rgb(255 255 255 / 0.16) 16%, rgb(255 255 255 / 0.05) 38%, rgb(0 0 0 / 0.04) 70%, rgb(0 0 0 / 0.34) 100%),
+    repeating-linear-gradient(0deg, rgb(255 255 255 / 0.04) 0 1px, transparent 1px 3px),
+    repeating-linear-gradient(90deg, rgb(0 0 0 / 0.05) 0 1px, transparent 1px 2px),
+    var(--spine);
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.2);
+  overflow: hidden;
+}
+/* decorated-binding ornaments (SpineArt.tsx) */
+.spine-orn {
+  display: block;
+  flex: none;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  filter: drop-shadow(0 0.5px 0 rgb(0 0 0 / 0.25));
+}
+/* Titles come first: ornaments shrink to whatever room is left. */
+.spine-orn.top {
+  max-height: 30px;
+  margin-bottom: 6px;
+}
+.spine-orn.bottom {
+  margin-top: auto;
+  flex: 0 1 auto;
+  min-height: 24px;
+  max-height: 32%;
+}
+/*
+ * The title gets about half the spine's height. Its size is the smallest of: what the
+ * spine's width allows, what its height allows for the longest line (--tchars, set per
+ * book; bold letters take up to ~0.65em), and 18px. Long titles run as two lines (.two),
+ * so names like "Twisted Games" show in full instead of "Twisted Ga…".
+ */
+.spine-title {
+  --troom: calc(var(--h) * var(--k) * 0.5);
+  writing-mode: vertical-rl;
+  font-family: var(--display);
+  font-variation-settings: 'SOFT' 100, 'opsz' 24;
+  font-weight: 700;
+  font-size: max(9px, min(calc(18px * var(--k)), calc(var(--w) * var(--k) * 0.36), calc(var(--troom) / (var(--tchars, 10) * 0.68))));
+  line-height: 1.05;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: none;
+  max-height: calc(var(--troom) + 6px);
+}
+.spine-title.two {
+  white-space: normal;
+  text-wrap: balance;
+  line-height: 1.02;
+  /* two lines side by side across the spine's width */
+  font-size: max(9px, min(calc(16px * var(--k)), calc((var(--w) * var(--k) - 10px) / 2.2), calc(var(--troom) / (var(--tchars, 10) * 0.68))));
+  max-width: calc(var(--w) * var(--k) - 6px);
+}
+.spine.dark .spine-title {
+  text-shadow: 0 1px 0 rgb(0 0 0 / 0.45);
+}
+.spine.light .spine-title {
+  text-shadow: 0 1px 0 rgb(255 255 255 / 0.35);
+}
+/*
+ * Title label on the fleuron variant: a slightly deeper shade of the book's own
+ * cloth with a thin gilt frame, so it reads as part of the binding rather than
+ * a dark "selected" patch.
+ */
+.v4 .spine-title {
+  background: #8a6f86;
+  background: color-mix(in srgb, var(--spine) 82%, #3a2433);
+  color: var(--ink);
+  border: 1px solid var(--gilt);
+  outline: 1px solid rgb(255 255 255 / 0.25);
+  outline-offset: -3px;
+  padding: 8px 3px;
+  border-radius: 2px;
+}
+/*
+ * The author's surname gets about a quarter of the spine's height. Each capital takes
+ * roughly 0.8em down the spine (letter plus spacing), so long names step down in size
+ * to fit — "KENNEDY" shows in full instead of being cut to "KENNED".
+ */
+.spine-author {
+  --room: calc(var(--h) * var(--k) * 0.2);
+  writing-mode: vertical-rl;
+  font-size: clamp(6.5px, calc(var(--room) / (var(--chars, 6) * 0.82)), calc(9.5px * max(1, var(--k))));
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-top: 6px;
+  color: var(--ink);
+  opacity: 0.8;
+  max-height: calc(var(--room) + 4px);
+  overflow: hidden;
+  white-space: nowrap;
+  flex: none;
+}
+
+.cover {
+  left: 100%;
+  width: calc(var(--d) * var(--k));
+  transform-origin: 0 50%;
+  transform: rotateY(90deg);
+  border-radius: 0 4px 4px 0;
+  overflow: hidden;
+  background: var(--spine);
+  box-shadow: inset 4px 0 8px rgb(0 0 0 / 0.25);
+}
+.cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.cover::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgb(0 0 0 / 0.25), transparent 12%, rgb(255 255 255 / 0.08) 60%, rgb(0 0 0 / 0.1));
+}
+.cover-fallback {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  padding: 12px;
+  text-align: center;
+  font-family: var(--display);
+  font-variation-settings: 'SOFT' 100;
+  font-weight: 700;
+  color: var(--gold);
+  border: 2px solid rgb(232 199 122 / 0.6);
+  outline: 1px solid rgb(232 199 122 / 0.4);
+  outline-offset: -8px;
+}
+
+.fav-flower {
+  position: absolute;
+  top: -34px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-10deg);
+  z-index: 2;
+  pointer-events: none;
+  filter: drop-shadow(0 2px 2px rgb(0 0 0 / 0.3));
+  transition: transform 0.5s var(--ease), opacity 0.3s;
+}
+.book:not(.settling):hover .fav-flower,
+.book.is-active .fav-flower {
+  transform: translate(-30%, -20px) rotate(-16deg);
+}
+.ribbon {
+  position: absolute;
+  bottom: -18px;
+  left: 28%;
+  width: 7px;
+  height: 30px;
+  background: linear-gradient(90deg, #d26f98, var(--pink-400) 50%, #d26f98);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 82%, 0 100%);
+  z-index: 4;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+.book:not(.settling):hover .ribbon,
+.book.is-active .ribbon {
+  opacity: 0;
+}
+
+/* lying stack at the end */
+/* "Add a book": a ghost book standing in the next free spot on the shelf */
+.add-slot-wrap {
+  flex: none;
+  margin-left: 10px;
+  width: calc(58px * var(--k));
+  height: calc(250px * var(--k));
+}
+.add-slot {
+  all: unset;
+  box-sizing: border-box;
+  cursor: pointer;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: calc(14px * var(--k));
+  padding-top: calc(18px * var(--k));
+  border: 2px dashed rgb(232 199 122 / 0.55);
+  border-bottom: 0;
+  border-radius: 6px 6px 2px 2px;
+  background: linear-gradient(180deg, rgb(255 250 243 / 0.08), rgb(255 250 243 / 0.03));
+  color: #f3dc9f;
+  transition: background 0.2s var(--ease), border-color 0.2s var(--ease), transform 0.25s var(--ease);
+}
+.add-slot:hover,
+.add-slot:focus-visible {
+  background: linear-gradient(180deg, rgb(255 250 243 / 0.18), rgb(255 250 243 / 0.06));
+  border-color: rgb(232 199 122 / 0.95);
+  transform: translateY(-6px);
+}
+.add-slot:active {
+  transform: translateY(-2px) scale(0.98);
+}
+.add-slot-plus {
+  display: grid;
+  place-items: center;
+  width: calc(36px * var(--k));
+  height: calc(36px * var(--k));
+  min-width: 26px;
+  min-height: 26px;
+  border-radius: 50%;
+  background: rgb(232 199 122 / 0.2);
+  box-shadow: inset 0 0 0 1px rgb(232 199 122 / 0.6);
+}
+.add-slot-label {
+  writing-mode: vertical-rl;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: clamp(11px, calc(15px * var(--k)), 15px);
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  opacity: 0.9;
+}
+
+.decor-stack {
+  flex: none;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: flex-start;
+  /* sits at the far end of the last shelf, so a short shelf doesn't look half-empty */
+  margin-left: auto;
+  padding-right: 12px;
+}
+.decor-stack > span:not(.decor-vase) {
+  display: block;
+  height: 19px;
+  border-radius: 2px 3px 3px 2px;
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 0.18), transparent 40%, rgb(0 0 0 / 0.2)),
+    linear-gradient(90deg, var(--c) 0 90%, #efe3cb 90%, #e4d5b9);
+  box-shadow: 0 2px 3px rgb(0 0 0 / 0.35), inset 0 0 0 1px rgb(0 0 0 / 0.15);
+  border-left: 4px solid rgb(232 199 122 / 0.75);
+}
+.decor-stack > span:nth-child(2) {
+  margin-left: 6px;
+}
+.decor-vase {
+  display: flex;
+  align-items: flex-end;
+  margin: 0 0 -2px 26px;
+  height: 64px;
+  gap: 0;
+}
+.decor-vase svg {
+  margin: 0 -8px;
+}
+.decor-top {
+  display: flex;
+  align-items: flex-end;
+}
+.heart-plush {
+  all: unset;
+  cursor: pointer;
+  display: block;
+  width: 76px;
+  height: 82px;
+  margin: 0 0 -3px 4px;
+  transform-origin: 50% 100%;
+  transform: rotate(4deg);
+  filter: drop-shadow(0 3px 2px rgb(0 0 0 / 0.3));
+  transition: transform 0.25s ease;
+}
+.heart-plush svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.heart-plush:hover {
+  transform: rotate(-2deg) scale(1.05);
+}
+.heart-plush[data-boop] {
+  animation: plush-boop 0.6s cubic-bezier(0.3, 1.6, 0.5, 1);
+}
+@keyframes plush-boop {
+  0% { transform: rotate(4deg) scale(1); }
+  30% { transform: rotate(-8deg) scale(1.12, 0.9); }
+  60% { transform: rotate(6deg) scale(0.96, 1.06); }
+  100% { transform: rotate(4deg) scale(1); }
+}
+
+/* ---------- arrows + caption ---------- */
+
+.shelf-arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 8;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 0;
+  background: rgb(255 250 243 / 0.92);
+  color: var(--lav-700);
+  box-shadow: var(--shadow-soft);
+  display: grid;
+  place-items: center;
+  transition: opacity 0.2s, transform 0.2s;
+}
+.shelf-arrow.prev {
+  left: 2px;
+}
+.shelf-arrow.next {
+  right: 2px;
+}
+.shelf-arrow:disabled {
+  opacity: 0;
+  pointer-events: none;
+}
+.shelf-arrow:hover {
+  transform: scale(1.06);
+}
+
+.shelf-caption {
+  margin: 18px auto 0;
+  width: min(760px, calc(100% - 32px));
+  min-height: 62px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px 10px 18px;
+  background: rgb(255 250 243 / 0.82);
+  border: 1px solid var(--lav-200);
+  border-radius: 18px;
+  box-shadow: var(--shadow-soft);
+  flex-wrap: wrap;
+}
+.caption-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1 1 260px;
+}
+.caption-text strong {
+  font-family: var(--display);
+  font-variation-settings: 'SOFT' 100;
+  font-size: 1.15rem;
+  color: var(--lav-700);
+}
+.caption-text > span:not(.caption-meta) {
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+.caption-meta {
+  font-size: 0.78rem;
+  color: var(--ink-soft);
+}
+.caption-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.caption-hint {
+  margin: 0 auto;
+  color: var(--ink-soft);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .shelf-scroll {
+    --k: 0.8;
+    padding-top: 62px;
+    padding-left: 20px;
+  }
+  .shelf-back {
+    border-width: 8px;
+  }
+  .shelf-arrow {
+    display: none;
+  }
+  .caption-hint kbd,
+  .caption-hint {
+    font-size: 0.78rem;
+  }
+}
+
+/* keyboard tips on laptops, touch tips on phones and tablets */
+.hint-touch {
+  display: none;
+}
+@media (hover: none) {
+  .hint-keys {
+    display: none;
+  }
+  .hint-touch {
+    display: inline;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .book:not(.settling):hover .book-3d,
+  .book.is-active .book-3d {
+    transform: perspective(1100px) translate3d(0, -14px, 30px) rotateY(-40deg);
+  }
+}
